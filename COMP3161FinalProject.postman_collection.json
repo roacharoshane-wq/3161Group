@@ -1,0 +1,102 @@
+{
+  "info": {
+    "_postman_id": "772b176d-3c41-4134-9e81-bb0ffedcffb2",
+    "name": "COMP3161FinalProject",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48085872",
+    "_collection_link": "https://go.postman.co/collection/48085872-772b176d-3c41-4134-9e81-bb0ffedcffb2?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "item": [
+        {
+          "name": "create_account",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{adminuser}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{adminpass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password_hash\": \"hashedpassword123\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Brown\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/register_user",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "register_user"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Login",
+      "item": []
+    },
+    {
+      "name": "login",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "{{adminuser}}",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{adminpass}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password_hash\": \"pass123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{hostname}}/login",
+          "host": [
+            "{{hostname}}"
+          ],
+          "path": [
+            "login"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

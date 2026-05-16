@@ -1,0 +1,55 @@
+Register User
+- Create Lecturer
+
+{
+  "role": "lecturer",
+  "email": "lecturer1@example.com",
+  "password_hash": "pass123",
+  "first_name": "John",
+  "last_name": "Brown",
+  "created_by_admin_id": 1
+}
+
+
+
+- Create Student
+
+{
+  "role": "student",
+  "student_no": "620000001",
+  "email": "student1@example.com",
+  "password_hash": "pass123",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "created_by_admin_id": 1
+}
+
+
+Create Admin
+
+{
+  "role": "admin",
+  "email": "admin1@example.com",
+  "password_hash": "pass123",
+  "first_name": "Alex",
+  "last_name": "Campbell",
+  "created_by_admin_id": 1
+}
+
+User Login
+
+Student
+{
+  "role": "student",
+  "email": "student1@example.com",
+  "password_hash": "pass123"
+}
+
+Lecturer
+
+{
+  "role": "lecturer",
+  "email": "lecturer1@example.com",
+  "password_hash": "pass123"
+}
+
