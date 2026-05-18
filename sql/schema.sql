@@ -305,6 +305,3 @@ CREATE INDEX idx_reply_thread ON discussion_reply (thread_id);
 
 
 
-
-
-
