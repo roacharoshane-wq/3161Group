@@ -1,0 +1,26 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f6fb; color: #172033; }
+.page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.hero { display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 18px; }
+.eyebrow { margin: 0; color: #4963d1; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; }
+h1 { margin: 4px 0; font-size: 2rem; }
+h2 { margin-top: 0; }
+.grid { display: grid; gap: 16px; margin-bottom: 16px; }
+.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.card, .userBox { background: #fff; border: 1px solid #e5e9f2; border-radius: 16px; padding: 18px; box-shadow: 0 8px 24px rgba(23, 32, 51, .06); margin-bottom: 16px; }
+.userBox { min-width: 260px; display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.userBox span { color: #667085; font-size: .9rem; }
+.userBox b { color: #4963d1; text-transform: uppercase; font-size: .8rem; }
+label { display: block; margin-top: 10px; margin-bottom: 5px; font-weight: 700; font-size: .9rem; }
+input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #cfd6e4; border-radius: 10px; font: inherit; background: #fff; }
+textarea { min-height: 80px; resize: vertical; }
+button { margin-top: 10px; border: 0; border-radius: 10px; background: #4963d1; color: #fff; padding: 10px 14px; font-weight: 700; cursor: pointer; }
+button:hover { filter: brightness(.95); }
+.alert { background: #ecfdf3; border: 1px solid #abefc6; color: #067647; padding: 12px 14px; border-radius: 12px; margin-bottom: 16px; }
+.alert.error { background: #fff1f3; border-color: #fecdd6; color: #c01048; }
+.inlineForm { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; align-items: end; margin-bottom: 10px; }
+.inlineForm button { margin-top: 0; }
+.buttonGrid { display: flex; flex-wrap: wrap; gap: 10px; }
+.buttonGrid button { margin-top: 0; }
+pre { background: #0f172a; color: #dbeafe; padding: 16px; border-radius: 12px; overflow: auto; min-height: 130px; }
+@media (max-width: 850px) { .two { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: stretch; } .inlineForm { grid-template-columns: 1fr; } }
