@@ -13,221 +13,197 @@ const emptyRegisterForm = {
   created_by_admin_id: 1,
 };
 
+// ─── tiny helpers ────────────────────────────────────────────────────────────
+
+function Badge({ label, color = '#4963d1' }) {
+  return (
+    <span style={{
+      display: 'inline-block', padding: '2px 9px', borderRadius: 99,
+      background: color + '1a', color, fontSize: '0.75rem', fontWeight: 700,
+      textTransform: 'uppercase', letterSpacing: '0.05em',
+    }}>
+      {label}
+    </span>
+  );
+}
+
+function EmptyState({ text }) {
+  return <p style={{ color: '#8892a4', fontStyle: 'italic', margin: '6px 0' }}>{text}</p>;
+}
+
+// ─── main app ────────────────────────────────────────────────────────────────
+
 function App() {
-  const [loginForm, setLoginForm] = useState({ role: 'student', email: '', password: '' });
+  // ── auth
+  const [loginForm, setLoginForm]       = useState({ role: 'student', email: '', password: '' });
   const [registerForm, setRegisterForm] = useState(emptyRegisterForm);
-  const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : null;
+  const [currentUser, setCurrentUser]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem('currentUser')); } catch { return null; }
   });
 
-  const [courses, setCourses] = useState([]);
-  const [myCourses, setMyCourses] = useState([]);
+  // ── courses
+  const [courses, setCourses]             = useState([]);
+  const [myCourses, setMyCourses]         = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState('');
-  const [courseCode, setCourseCode] = useState('');
-  const [courseName, setCourseName] = useState('');
-  const [lecturerId, setLecturerId] = useState('');
-  const [members, setMembers] = useState(null);
+  const [courseCode, setCourseCode]       = useState('');
+  const [courseName, setCourseName]       = useState('');
+  const [lecturerId, setLecturerId]       = useState('');
+  const [members, setMembers]             = useState(null);
 
-  const [calendarEvents, setCalendarEvents] = useState([]);
-  const [studentDate, setStudentDate] = useState('');
-  const [studentDateEvents, setStudentDateEvents] = useState([]);
+  // ── calendar
+  const [calendarEvents, setCalendarEvents]         = useState([]);
+  const [studentDate, setStudentDate]               = useState('');
+  const [studentDateEvents, setStudentDateEvents]   = useState([]);
   const [eventForm, setEventForm] = useState({ title: '', event_type: 'general', event_at: '' });
 
-  const [forums, setForums] = useState([]);
+  // ── forums / threads / replies
+  const [forums, setForums]               = useState([]);
   const [selectedForumId, setSelectedForumId] = useState('');
-  const [forumTitle, setForumTitle] = useState('');
-  const [threads, setThreads] = useState([]);
+  const [forumTitle, setForumTitle]       = useState('');
+  const [threads, setThreads]             = useState([]);
   const [selectedThreadId, setSelectedThreadId] = useState('');
-  const [threadForm, setThreadForm] = useState({ title: '', body: '' });
-  const [replyBody, setReplyBody] = useState('');
+  const [threadForm, setThreadForm]       = useState({ title: '', body: '' });
+  const [replyBody, setReplyBody]         = useState('');
+  const [parentReplyId, setParentReplyId] = useState('');
   const [threadReplies, setThreadReplies] = useState(null);
 
-  const [sections, setSections] = useState([]);
-  const [sectionTitle, setSectionTitle] = useState('');
+  // ── content
+  const [sections, setSections]           = useState([]);
+  const [sectionTitle, setSectionTitle]   = useState('');
   const [sectionPosition, setSectionPosition] = useState(1);
   const [selectedSectionId, setSelectedSectionId] = useState('');
   const [itemForm, setItemForm] = useState({
-    item_type: 'link',
-    title: '',
-    url: '',
-    file_url: '',
-    description: '',
-    max_score: 100,
+    item_type: 'link', title: '', url: '', file_url: '', description: '', max_score: 100,
   });
 
-  const [assignmentId, setAssignmentId] = useState('');
-  const [contentUrl, setContentUrl] = useState('');
-  const [gradeForm, setGradeForm] = useState({ assignment_id: '', student_id: '', grade: '' });
+  // ── assignments
+  const [assignmentId, setAssignmentId]   = useState('');
+  const [contentUrl, setContentUrl]       = useState('');
+  const [gradeForm, setGradeForm]         = useState({ assignment_id: '', student_id: '', grade: '' });
   const [averageStudentId, setAverageStudentId] = useState('');
-  const [average, setAverage] = useState(null);
+  const [average, setAverage]             = useState(null);
 
-  const [reports, setReports] = useState({});
-  const [message, setMessage] = useState('');
+  // ── misc
+  const [reports, setReports]             = useState({});
+  const [message, setMessage]             = useState('');
+  const [msgType, setMsgType]             = useState('info'); // 'info' | 'error'
 
   const selectedCourse = useMemo(
-    () => courses.find(course => String(course.course_id) === String(selectedCourseId)),
+    () => courses.find(c => String(c.course_id) === String(selectedCourseId)),
     [courses, selectedCourseId]
   );
 
+  // ── utils ──────────────────────────────────────────────────────────────────
+
   function credentials(extra = {}) {
     if (!currentUser) return extra;
-    return {
-      role: currentUser.role,
-      email: currentUser.email,
-      password: currentUser.password,
-      ...extra,
-    };
+    return { role: currentUser.role, email: currentUser.email, password: currentUser.password, ...extra };
   }
 
-  async function apiRequest(path, options = {}) {
-    const res = await fetch(`${API_BASE}${path}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
-      },
-    });
+  function setMsg(text, type = 'info') { setMessage(text); setMsgType(type); }
 
+  async function apiRequest(path, options = {}) {
+    const res  = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    });
     const text = await res.text();
     const data = text ? JSON.parse(text) : {};
-
-    if (!res.ok) {
-      throw new Error(data.error || `Request failed with status ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
     return data;
   }
 
-  function updateRegister(field, value) {
-    setRegisterForm(prev => ({ ...prev, [field]: value }));
+  // ── auth handlers ──────────────────────────────────────────────────────────
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    try {
+      const data = await apiRequest('/login', { method: 'POST', body: JSON.stringify(loginForm) });
+      const user = { ...data.user, role: data.role, email: loginForm.email, password: loginForm.password };
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      setCurrentUser(user);
+      setMsg(`Logged in as ${data.role}: ${loginForm.email}`);
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  function updateLogin(field, value) {
-    setLoginForm(prev => ({ ...prev, [field]: value }));
-  }
-
-  async function handleRegister(event) {
-    event.preventDefault();
+  async function handleRegister(e) {
+    e.preventDefault();
     try {
       const body = { ...registerForm };
       if (body.role !== 'student') delete body.student_no;
-
-      const data = await apiRequest('/register_user', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      });
-
-      setMessage(`${data.role} created successfully. New ID: ${data.user_id}`);
+      const data = await apiRequest('/register_user', { method: 'POST', body: JSON.stringify(body) });
+      setMsg(`${data.role} created (ID: ${data.user_id}).`);
       setRegisterForm(emptyRegisterForm);
-    } catch (error) {
-      setMessage(error.message);
-    }
-  }
-
-  async function handleLogin(event) {
-    event.preventDefault();
-    try {
-      const data = await apiRequest('/login', {
-        method: 'POST',
-        body: JSON.stringify(loginForm),
-      });
-
-      const user = {
-        ...data.user,
-        role: data.role,
-        email: loginForm.email,
-        password: loginForm.password,
-      };
-
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      setCurrentUser(user);
-      setMessage(`Logged in as ${data.role}: ${loginForm.email}`);
-    } catch (error) {
-      setMessage(error.message);
-    }
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   function logout() {
     localStorage.removeItem('currentUser');
     setCurrentUser(null);
     setMyCourses([]);
-    setMessage('Logged out.');
+    setMsg('Logged out.');
   }
+
+  // ── courses ────────────────────────────────────────────────────────────────
 
   async function loadCourses() {
     try {
       const data = await apiRequest('/courses');
       setCourses(data.courses || []);
-      setMessage(`Loaded ${(data.courses || []).length} courses from the database.`);
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(`Loaded ${(data.courses || []).length} courses.`);
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function loadMyCourses() {
     if (!currentUser) return;
-
     try {
       if (currentUser.role === 'student') {
         const data = await apiRequest(`/courses/student/${currentUser.student_id}`);
         setMyCourses(data.courses || []);
-        setMessage(`Loaded ${(data.courses || []).length} registered course(s).`);
+        setMsg(`${(data.courses || []).length} registered course(s).`);
       } else if (currentUser.role === 'lecturer') {
         const data = await apiRequest(`/courses/lecturer/${currentUser.lecturer_id}`);
         setMyCourses(data.courses || []);
-        setMessage(`Loaded ${(data.courses || []).length} taught course(s).`);
+        setMsg(`${(data.courses || []).length} taught course(s).`);
       } else {
-        setMessage('Admins do not have a personal course list.');
+        setMsg('Admins do not have a personal course list.');
       }
-    } catch (error) {
-      setMessage(error.message);
-    }
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createCourse(event) {
-    event.preventDefault();
+  async function createCourse(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest('/courses', {
         method: 'POST',
         body: JSON.stringify(credentials({ course_code: courseCode, course_name: courseName })),
       });
-      setMessage(`Course created. ID: ${data.course_id}`);
-      setCourseCode('');
-      setCourseName('');
-      await loadCourses();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(`Course created (ID: ${data.course_id}).`);
+      setCourseCode(''); setCourseName('');
+      loadCourses();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function registerForCourse(courseId) {
     try {
       const data = await apiRequest(`/courses/${courseId}/register`, {
-        method: 'POST',
-        body: JSON.stringify(credentials()),
+        method: 'POST', body: JSON.stringify(credentials()),
       });
-      setMessage(data.success || 'Registered for course.');
-      await loadMyCourses();
-      await loadMembers();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Registered.');
+      loadMyCourses();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function assignLecturer(event) {
-    event.preventDefault();
+  async function assignLecturer(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/assign_lecturer`, {
         method: 'POST',
         body: JSON.stringify(credentials({ lecturer_id: Number(lecturerId) })),
       });
-      setMessage(data.success || 'Lecturer assigned.');
-      setLecturerId('');
-      await loadMembers();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Lecturer assigned.');
+      setLecturerId(''); loadMembers();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function loadMembers() {
@@ -235,103 +211,86 @@ function App() {
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/members`);
       setMembers(data);
-      setMessage('Loaded course members.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded course members.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
+
+  // ── calendar ───────────────────────────────────────────────────────────────
 
   async function loadCalendar() {
     if (!selectedCourseId) return;
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/calendar`);
       setCalendarEvents(data.events || []);
-      setMessage('Loaded course calendar.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded course calendar.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function loadStudentDateCalendar() {
     if (!currentUser?.student_id || !studentDate) {
-      setMessage('Login as a student and enter a date first.');
-      return;
+      setMsg('Login as a student and choose a date first.', 'error'); return;
     }
-
     try {
       const data = await apiRequest(`/calendar/student/${currentUser.student_id}?date=${studentDate}`);
       setStudentDateEvents(data.events || []);
-      setMessage(`Loaded ${data.events?.length || 0} event(s) for ${studentDate}.`);
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(`${data.events?.length || 0} event(s) on ${studentDate}.`);
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createCalendarEvent(event) {
-    event.preventDefault();
+  async function createCalendarEvent(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/calendar`, {
-        method: 'POST',
-        body: JSON.stringify(credentials(eventForm)),
+        method: 'POST', body: JSON.stringify(credentials(eventForm)),
       });
-      setMessage(data.success || 'Calendar event created.');
+      setMsg(data.success || 'Calendar event created.');
       setEventForm({ title: '', event_type: 'general', event_at: '' });
-      await loadCalendar();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      loadCalendar();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
+
+  // ── forums ─────────────────────────────────────────────────────────────────
 
   async function loadForums() {
     if (!selectedCourseId) return;
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/forums`);
       setForums(data.forums || []);
-      setMessage('Loaded forums.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded forums.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createForum(event) {
-    event.preventDefault();
+  async function createForum(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/forums`, {
-        method: 'POST',
-        body: JSON.stringify(credentials({ title: forumTitle })),
+        method: 'POST', body: JSON.stringify(credentials({ title: forumTitle })),
       });
-      setMessage(data.success || 'Forum created.');
-      setForumTitle('');
-      await loadForums();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Forum created.');
+      setForumTitle(''); loadForums();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
+
+  // ── threads ────────────────────────────────────────────────────────────────
 
   async function loadThreads(forumId = selectedForumId) {
     if (!forumId) return;
     try {
       const data = await apiRequest(`/forums/${forumId}/threads`);
       setThreads(data.threads || []);
-      setMessage('Loaded discussion threads.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded threads.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createThread(event) {
-    event.preventDefault();
+  async function createThread(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/forums/${selectedForumId}/threads`, {
-        method: 'POST',
-        body: JSON.stringify(credentials(threadForm)),
+        method: 'POST', body: JSON.stringify(credentials(threadForm)),
       });
-      setMessage(data.success || 'Thread created.');
-      setThreadForm({ title: '', body: '' });
-      await loadThreads();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Thread created.');
+      setThreadForm({ title: '', body: '' }); loadThreads();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function loadReplies(threadId = selectedThreadId) {
@@ -339,376 +298,396 @@ function App() {
     try {
       const data = await apiRequest(`/threads/${threadId}/replies`);
       setThreadReplies(data);
-      setMessage('Loaded thread replies.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded replies.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createReply(event) {
-    event.preventDefault();
+  async function createReply(e) {
+    e.preventDefault();
     try {
+      const body = { body: replyBody };
+      if (parentReplyId) body.parent_reply_id = Number(parentReplyId);
       const data = await apiRequest(`/threads/${selectedThreadId}/replies`, {
-        method: 'POST',
-        body: JSON.stringify(credentials({ body: replyBody })),
+        method: 'POST', body: JSON.stringify(credentials(body)),
       });
-      setMessage(data.success || 'Reply posted.');
-      setReplyBody('');
-      await loadReplies();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Reply posted.');
+      setReplyBody(''); setParentReplyId(''); loadReplies();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
+
+  // ── content ────────────────────────────────────────────────────────────────
 
   async function loadContent() {
     if (!selectedCourseId) return;
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/content`);
       setSections(data.sections || []);
-      setMessage('Loaded course content.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded course content.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function createSection(event) {
-    event.preventDefault();
+  async function createSection(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/courses/${selectedCourseId}/sections`, {
         method: 'POST',
         body: JSON.stringify(credentials({ title: sectionTitle, position: Number(sectionPosition) })),
       });
-      setMessage(data.success || 'Section created.');
-      setSectionTitle('');
-      setSectionPosition(1);
-      await loadContent();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Section created.');
+      setSectionTitle(''); setSectionPosition(1); loadContent();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function addSectionItem(event) {
-    event.preventDefault();
+  async function addSectionItem(e) {
+    e.preventDefault();
     try {
-      const body = {
-        item_type: itemForm.item_type,
-        title: itemForm.title,
-      };
-
-      if (itemForm.item_type === 'link') body.url = itemForm.url;
-      if (itemForm.item_type === 'lecture_slide') body.file_url = itemForm.file_url;
+      const body = { item_type: itemForm.item_type, title: itemForm.title };
+      if (itemForm.item_type === 'link')           body.url       = itemForm.url;
+      if (itemForm.item_type === 'lecture_slide')  body.file_url  = itemForm.file_url;
       if (itemForm.item_type === 'assignment') {
         body.description = itemForm.description;
-        body.max_score = Number(itemForm.max_score);
+        body.max_score   = Number(itemForm.max_score);
       }
-
       const data = await apiRequest(`/sections/${selectedSectionId}/items`, {
-        method: 'POST',
-        body: JSON.stringify(credentials(body)),
+        method: 'POST', body: JSON.stringify(credentials(body)),
       });
-      setMessage(data.success || 'Content item added.');
+      setMsg(data.success || 'Item added.');
       setItemForm({ item_type: 'link', title: '', url: '', file_url: '', description: '', max_score: 100 });
-      await loadContent();
-    } catch (error) {
-      setMessage(error.message);
-    }
+      loadContent();
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function submitAssignment(event) {
-    event.preventDefault();
+  // ── assignments ────────────────────────────────────────────────────────────
+
+  async function submitAssignment(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/assignments/${assignmentId}/submit`, {
-        method: 'POST',
-        body: JSON.stringify(credentials({ content_url: contentUrl })),
+        method: 'POST', body: JSON.stringify(credentials({ content_url: contentUrl })),
       });
-      setMessage(data.success || 'Assignment submitted.');
+      setMsg(data.success || 'Assignment submitted.');
       setContentUrl('');
-    } catch (error) {
-      setMessage(error.message);
-    }
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  async function gradeAssignment(event) {
-    event.preventDefault();
+  async function gradeAssignment(e) {
+    e.preventDefault();
     try {
       const data = await apiRequest(`/assignments/${gradeForm.assignment_id}/grade`, {
         method: 'POST',
-        body: JSON.stringify(credentials({
-          student_id: Number(gradeForm.student_id),
-          grade: Number(gradeForm.grade),
-        })),
+        body: JSON.stringify(credentials({ student_id: Number(gradeForm.student_id), grade: Number(gradeForm.grade) })),
       });
-      setMessage(data.success || 'Grade submitted.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(data.success || 'Grade submitted.');
+      setGradeForm({ assignment_id: '', student_id: '', grade: '' });
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
   async function loadAverage() {
     try {
-      const id = averageStudentId || currentUser?.student_id;
+      const id   = averageStudentId || currentUser?.student_id;
       const data = await apiRequest(`/students/${id}/average`);
       setAverage(data);
-      setMessage('Loaded student average.');
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg('Loaded student average.');
+    } catch (err) { setMsg(err.message, 'error'); }
   }
+
+  // ── reports ────────────────────────────────────────────────────────────────
 
   async function loadReport(key, path) {
     try {
       const data = await apiRequest(path);
       setReports(prev => ({ ...prev, [key]: data }));
-      setMessage(`Loaded report: ${key}`);
-    } catch (error) {
-      setMessage(error.message);
-    }
+      setMsg(`Loaded report: ${key}`);
+    } catch (err) { setMsg(err.message, 'error'); }
   }
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
+  // ── effects ────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (currentUser) loadMyCourses();
-  }, [currentUser]);
+  useEffect(() => { loadCourses(); }, []);
+  useEffect(() => { if (currentUser) loadMyCourses(); }, [currentUser]);
+
+  // ── reply tree renderer ────────────────────────────────────────────────────
+
+  function ReplyTree({ replies, depth = 0 }) {
+    if (!replies?.length) return null;
+    return (
+      <ul style={{ paddingLeft: depth === 0 ? 0 : 18, listStyle: 'none', margin: 0 }}>
+        {replies.map(r => (
+          <li key={r.reply_id} style={{ borderLeft: depth > 0 ? '2px solid #e2e6ee' : 'none', paddingLeft: depth > 0 ? 10 : 0, marginBottom: 8 }}>
+            <div style={{ background: depth % 2 === 0 ? '#f8faff' : '#fff', borderRadius: 8, padding: '8px 12px', border: '1px solid #e8ecf4' }}>
+              <span style={{ fontSize: '0.75rem', color: '#8892a4' }}>
+                Reply #{r.reply_id} · {r.created_at ? String(r.created_at).slice(0, 16) : ''}
+              </span>
+              <p style={{ margin: '4px 0 4px' }}>{r.body}</p>
+              <button
+                type="button"
+                style={{ fontSize: '0.75rem', padding: '2px 8px', background: '#e8edf8', color: '#4963d1', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                onClick={() => { setParentReplyId(String(r.reply_id)); setSelectedThreadId(r.thread_id); }}
+              >
+                ↩ Reply
+              </button>
+            </div>
+            <ReplyTree replies={r.replies} depth={depth + 1} />
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  // ── render ─────────────────────────────────────────────────────────────────
+
+  const isStudent  = currentUser?.role === 'student';
+  const isLecturer = currentUser?.role === 'lecturer';
+  const isAdmin    = currentUser?.role === 'admin';
 
   return (
     <main className="page">
+
+      {/* ── header ─────────────────────────────────────────────────────────── */}
       <header className="hero">
         <div>
           <p className="eyebrow">COMP3161 Database Project</p>
-          <h1>Course Management Dashboard</h1>
-          <p>Use the frontend to call your Flask API and display live MySQL database records.</p>
+          <h1>Course Management System</h1>
+          <p style={{ color: '#5a6478', margin: '4px 0 0' }}>
+            React + Flask + MySQL · Full-stack course portal
+          </p>
         </div>
-
-        {currentUser ? (
+        {currentUser && (
           <div className="user-card">
-            <strong>{currentUser.first_name} {currentUser.last_name}</strong>
-            <span>{currentUser.role} • {currentUser.email}</span>
-            <button onClick={logout}>Logout</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#4963d1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.1rem' }}>
+                {currentUser.first_name?.[0]}{currentUser.last_name?.[0]}
+              </div>
+              <div>
+                <strong>{currentUser.first_name} {currentUser.last_name}</strong>
+                <br />
+                <span style={{ fontSize: '0.8rem', color: '#5a6478' }}>{currentUser.email}</span>
+              </div>
+            </div>
+            <Badge label={currentUser.role} color={isAdmin ? '#d14949' : isLecturer ? '#2e7d57' : '#4963d1'} />
+            <button onClick={logout} style={{ background: '#f3f5f8', color: '#172033' }}>Logout</button>
           </div>
-        ) : null}
+        )}
       </header>
 
+      {/* ── login / register ───────────────────────────────────────────────── */}
       <section className="grid two">
         <form className="card" onSubmit={handleLogin}>
           <h2>Login</h2>
           <label>Role</label>
-          <select value={loginForm.role} onChange={e => updateLogin('role', e.target.value)}>
+          <select value={loginForm.role} onChange={e => setLoginForm(p => ({ ...p, role: e.target.value }))}>
             <option value="student">Student</option>
             <option value="lecturer">Lecturer</option>
             <option value="admin">Admin</option>
           </select>
-
           <label>Email</label>
-          <input value={loginForm.email} onChange={e => updateLogin('email', e.target.value)} placeholder="student1@example.com" />
-
+          <input value={loginForm.email} onChange={e => setLoginForm(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" />
           <label>Password</label>
-          <input type="password" value={loginForm.password} onChange={e => updateLogin('password', e.target.value)} placeholder="pass123" />
-
-          <button type="submit">Login</button>
+          <input type="password" value={loginForm.password} onChange={e => setLoginForm(p => ({ ...p, password: e.target.value }))} />
+          <button type="submit">Sign In</button>
         </form>
 
         <form className="card" onSubmit={handleRegister}>
-          <h2>Register User</h2>
+          <h2>Register New User</h2>
           <label>Role</label>
-          <select value={registerForm.role} onChange={e => updateRegister('role', e.target.value)}>
+          <select value={registerForm.role} onChange={e => setRegisterForm(p => ({ ...p, role: e.target.value }))}>
             <option value="student">Student</option>
             <option value="lecturer">Lecturer</option>
             <option value="admin">Admin</option>
           </select>
-
           {registerForm.role === 'student' && (
             <>
               <label>Student Number</label>
-              <input value={registerForm.student_no} onChange={e => updateRegister('student_no', e.target.value)} />
+              <input value={registerForm.student_no} onChange={e => setRegisterForm(p => ({ ...p, student_no: e.target.value }))} placeholder="S000001" />
             </>
           )}
-
           <label>Email</label>
-          <input value={registerForm.email} onChange={e => updateRegister('email', e.target.value)} />
-
+          <input value={registerForm.email} onChange={e => setRegisterForm(p => ({ ...p, email: e.target.value }))} />
           <label>Password</label>
-          <input type="password" value={registerForm.password} onChange={e => updateRegister('password', e.target.value)} />
-
+          <input type="password" value={registerForm.password} onChange={e => setRegisterForm(p => ({ ...p, password: e.target.value }))} />
           <label>First Name</label>
-          <input value={registerForm.first_name} onChange={e => updateRegister('first_name', e.target.value)} />
-
+          <input value={registerForm.first_name} onChange={e => setRegisterForm(p => ({ ...p, first_name: e.target.value }))} />
           <label>Last Name</label>
-          <input value={registerForm.last_name} onChange={e => updateRegister('last_name', e.target.value)} />
-
+          <input value={registerForm.last_name} onChange={e => setRegisterForm(p => ({ ...p, last_name: e.target.value }))} />
           <label>Created By Admin ID</label>
-          <input type="number" value={registerForm.created_by_admin_id} onChange={e => updateRegister('created_by_admin_id', Number(e.target.value))} />
-
+          <input type="number" value={registerForm.created_by_admin_id} onChange={e => setRegisterForm(p => ({ ...p, created_by_admin_id: Number(e.target.value) }))} />
           <button type="submit">Create Account</button>
         </form>
       </section>
 
-      {currentUser?.role === 'admin' && (
+      {/* ── admin: create course / assign lecturer ─────────────────────────── */}
+      {isAdmin && (
         <section className="grid two">
           <form className="card" onSubmit={createCourse}>
             <h2>Admin: Create Course</h2>
             <label>Course Code</label>
             <input value={courseCode} onChange={e => setCourseCode(e.target.value)} placeholder="COMP3161" />
-
             <label>Course Name</label>
-            <input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="Database Management Systems" />
-
+            <input value={courseName} onChange={e => setCourseName(e.target.value)} placeholder="Database Management" />
             <button type="submit">Create Course</button>
           </form>
 
           <form className="card" onSubmit={assignLecturer}>
             <h2>Admin: Assign Lecturer</h2>
-            <p>Selected course: {selectedCourse ? `${selectedCourse.course_code} - ${selectedCourse.course_name}` : 'None'}</p>
-
+            {selectedCourse
+              ? <div className="selected-banner">{selectedCourse.course_code} — {selectedCourse.course_name}</div>
+              : <EmptyState text="Select a course from the table below first." />
+            }
             <label>Lecturer ID</label>
             <input value={lecturerId} onChange={e => setLecturerId(e.target.value)} placeholder="1" />
-
             <button type="submit" disabled={!selectedCourseId}>Assign Lecturer</button>
           </form>
         </section>
       )}
 
+      {/* ── all courses table ──────────────────────────────────────────────── */}
       <section className="card">
         <div className="section-header">
           <h2>All Courses</h2>
-          <button onClick={loadCourses}>Refresh Courses</button>
+          <button onClick={loadCourses}>↻ Refresh</button>
         </div>
-
         {selectedCourse && (
           <div className="selected-banner">
-            Selected Course: <strong>{selectedCourse.course_code} — {selectedCourse.course_name}</strong>
+            Selected: <strong>{selectedCourse.course_code} — {selectedCourse.course_name}</strong>
           </div>
         )}
-
         <div className="table-wrap">
           <table>
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>ID</th><th>Code</th><th>Name</th><th>Actions</th></tr>
             </thead>
-
             <tbody>
-              {courses.map(course => (
-                <tr
-                  key={course.course_id}
-                  className={String(selectedCourseId) === String(course.course_id) ? 'selected-row' : ''}
-                  onClick={() => setSelectedCourseId(course.course_id)}
-                >
-                  <td>{course.course_id}</td>
-                  <td>{course.course_code}</td>
-                  <td>{course.course_name}</td>
-                  <td>
-                    <button type="button" onClick={e => {
-                      e.stopPropagation();
-                      setSelectedCourseId(course.course_id);
-                    }}>
-                      Select
-                    </button>
-
-                    {currentUser?.role === 'student' && (
-                      <button type="button" onClick={e => {
-                        e.stopPropagation();
-                        registerForCourse(course.course_id);
-                      }}>
-                        Register
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {courses.length === 0
+                ? <tr><td colSpan={4}><EmptyState text="No courses loaded — click Refresh." /></td></tr>
+                : courses.map(c => (
+                  <tr
+                    key={c.course_id}
+                    className={String(selectedCourseId) === String(c.course_id) ? 'selected-row' : ''}
+                    onClick={() => setSelectedCourseId(c.course_id)}
+                  >
+                    <td>{c.course_id}</td>
+                    <td><strong>{c.course_code}</strong></td>
+                    <td>{c.course_name}</td>
+                    <td>
+                      <button type="button" onClick={e => { e.stopPropagation(); setSelectedCourseId(c.course_id); }}>Select</button>
+                      {isStudent && (
+                        <button type="button" onClick={e => { e.stopPropagation(); registerForCourse(c.course_id); }}>Enrol</button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              }
             </tbody>
           </table>
         </div>
       </section>
 
-      {currentUser && currentUser.role !== 'admin' && (
+      {/* ── my courses ────────────────────────────────────────────────────── */}
+      {currentUser && !isAdmin && (
         <section className="card">
           <div className="section-header">
-            <h2>{currentUser.role === 'student' ? 'My Registered Courses' : 'My Taught Courses'}</h2>
-            <button onClick={loadMyCourses}>Load My Courses</button>
+            <h2>{isStudent ? 'My Enrolled Courses' : 'My Taught Courses'}</h2>
+            <button onClick={loadMyCourses}>↻ Refresh</button>
           </div>
-
-          {myCourses.length === 0 ? (
-            <p>No courses loaded yet.</p>
-          ) : (
-            <ul className="list">
-              {myCourses.map(course => (
-                <li key={course.course_id}>{course.course_code} — {course.course_name}</li>
-              ))}
-            </ul>
-          )}
+          {myCourses.length === 0
+            ? <EmptyState text="No courses loaded yet." />
+            : <ul className="list">{myCourses.map(c => <li key={c.course_id}><strong>{c.course_code}</strong> — {c.course_name}</li>)}</ul>
+          }
         </section>
       )}
 
+      {/* ── course tools panel ────────────────────────────────────────────── */}
       <section className="card">
-        <h2>Selected Course Tools</h2>
-        <p>{selectedCourse ? `${selectedCourse.course_code} — ${selectedCourse.course_name}` : 'Select a course from the table first.'}</p>
-
+        <div className="section-header">
+          <h2>Course Tools</h2>
+          <span style={{ color: '#8892a4', fontSize: '0.85rem' }}>
+            {selectedCourse ? `${selectedCourse.course_code} — ${selectedCourse.course_name}` : 'Select a course first'}
+          </span>
+        </div>
         <div className="button-row">
-          <button disabled={!selectedCourseId} onClick={loadMembers}>View Members</button>
-          <button disabled={!selectedCourseId} onClick={loadCalendar}>View Calendar</button>
-          <button disabled={!selectedCourseId} onClick={loadForums}>View Forums</button>
-          <button disabled={!selectedCourseId} onClick={loadContent}>View Content</button>
+          <button disabled={!selectedCourseId} onClick={loadMembers}>👥 Members</button>
+          <button disabled={!selectedCourseId} onClick={loadCalendar}>📅 Calendar</button>
+          <button disabled={!selectedCourseId} onClick={loadForums}>💬 Forums</button>
+          <button disabled={!selectedCourseId} onClick={loadContent}>📚 Content</button>
         </div>
 
+        {/* members */}
         {members && (
           <div className="grid two nested">
             <div>
-              <h3>Students</h3>
-              <ul>{members.students?.map(s => <li key={s.student_id}>{s.student_no} — {s.first_name} {s.last_name}</li>)}</ul>
+              <h3>Students ({members.students?.length ?? 0})</h3>
+              {members.students?.length
+                ? <ul className="list">{members.students.map(s => <li key={s.student_id}>{s.student_no} — {s.first_name} {s.last_name}</li>)}</ul>
+                : <EmptyState text="No students enrolled." />
+              }
             </div>
             <div>
-              <h3>Lecturers</h3>
-              <ul>{members.lecturers?.map(l => <li key={l.lecturer_id}>{l.lecturer_id} — {l.first_name} {l.last_name}</li>)}</ul>
+              <h3>Lecturer</h3>
+              {members.lecturers?.length
+                ? <ul className="list">{members.lecturers.map(l => <li key={l.lecturer_id}>{l.first_name} {l.last_name} ({l.email})</li>)}</ul>
+                : <EmptyState text="No lecturer assigned." />
+              }
             </div>
           </div>
         )}
 
+        {/* calendar events */}
         {calendarEvents.length > 0 && (
-          <div>
-            <h3>Calendar Events</h3>
-            <ul>{calendarEvents.map(e => <li key={e.event_id}>{String(e.event_at)} — {e.title} ({e.event_type})</li>)}</ul>
-          </div>
-        )}
-
-        {forums.length > 0 && (
-          <div>
-            <h3>Forums</h3>
-            <ul>
-              {forums.map(f => (
-                <li key={f.forum_id}>
-                  <button type="button" onClick={() => {
-                    setSelectedForumId(f.forum_id);
-                    loadThreads(f.forum_id);
-                  }}>
-                    Select Forum
-                  </button>
-                  {f.title}
+          <div className="nested">
+            <h3>Calendar Events ({calendarEvents.length})</h3>
+            <ul className="list">
+              {calendarEvents.map(ev => (
+                <li key={ev.event_id}>
+                  <Badge label={ev.event_type} color={ev.event_type === 'assignment_due' ? '#d14949' : '#2e7d57'} />
+                  {' '}{String(ev.event_at).slice(0, 16)} — {ev.title}
                 </li>
               ))}
             </ul>
           </div>
         )}
 
+        {/* forums */}
+        {forums.length > 0 && (
+          <div className="nested">
+            <h3>Forums ({forums.length})</h3>
+            <ul className="list">
+              {forums.map(f => (
+                <li key={f.forum_id} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <button type="button" onClick={() => { setSelectedForumId(f.forum_id); loadThreads(f.forum_id); }}>
+                    {String(selectedForumId) === String(f.forum_id) ? '✓ Selected' : 'Select'}
+                  </button>
+                  {f.title}
+                  {String(selectedForumId) === String(f.forum_id) && <Badge label="active forum" />}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* content sections */}
         {sections.length > 0 && (
-          <div>
-            <h3>Content Sections</h3>
+          <div className="nested">
+            <h3>Content Sections ({sections.length})</h3>
             {sections.map(sec => (
               <div className="mini-card" key={sec.section_id}>
-                <button type="button" onClick={() => setSelectedSectionId(sec.section_id)}>Select Section</button>
-                <strong>{sec.position}. {sec.title}</strong>
-                <ul>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button type="button" onClick={() => setSelectedSectionId(sec.section_id)}>
+                    {String(selectedSectionId) === String(sec.section_id) ? '✓ Selected' : 'Select'}
+                  </button>
+                  <strong>{sec.position}. {sec.title}</strong>
+                  {String(selectedSectionId) === String(sec.section_id) && <Badge label="active section" />}
+                </div>
+                <ul className="list" style={{ marginTop: 6 }}>
                   {sec.items?.map(item => (
                     <li key={item.section_item_id}>
-                      #{item.section_item_id} — {item.item_type}: {item.title}
-                      {item.url ? ` (${item.url})` : ''}
-                      {item.file_url ? ` (${item.file_url})` : ''}
+                      <Badge
+                        label={item.item_type}
+                        color={item.item_type === 'assignment' ? '#d14949' : item.item_type === 'lecture_slide' ? '#2e7d57' : '#4963d1'}
+                      />
+                      {' '}#{item.section_item_id} — {item.title}
+                      {item.url && <> · <a href={item.url} target="_blank" rel="noreferrer">{item.url}</a></>}
+                      {item.file_url && <> · <a href={item.file_url} target="_blank" rel="noreferrer">{item.file_url}</a></>}
+                      {item.max_score && <> · max {item.max_score} pts</>}
                     </li>
                   ))}
                 </ul>
@@ -718,244 +697,297 @@ function App() {
         )}
       </section>
 
-      {currentUser?.role === 'student' && (
+      {/* ── student: enrol / submit assignment / calendar by date ─────────── */}
+      {isStudent && (
         <section className="grid two">
           <form className="card" onSubmit={submitAssignment}>
-            <h2>Student: Submit Assignment</h2>
-            <label>Assignment ID</label>
-            <input value={assignmentId} onChange={e => setAssignmentId(e.target.value)} placeholder="Section item ID of assignment" />
-
+            <h2>Submit Assignment</h2>
+            <label>Assignment ID (section_item_id)</label>
+            <input value={assignmentId} onChange={e => setAssignmentId(e.target.value)} placeholder="e.g. 42" />
             <label>Content URL</label>
             <input value={contentUrl} onChange={e => setContentUrl(e.target.value)} placeholder="https://..." />
-
-            <button type="submit">Submit Assignment</button>
+            <button type="submit">Submit</button>
           </form>
 
           <div className="card">
-            <h2>Student: Calendar By Date</h2>
+            <h2>My Calendar by Date</h2>
             <label>Date</label>
             <input type="date" value={studentDate} onChange={e => setStudentDate(e.target.value)} />
             <button onClick={loadStudentDateCalendar}>Load Events</button>
-            <ul>{studentDateEvents.map(e => <li key={e.event_id}>{String(e.event_at)} — {e.title}</li>)}</ul>
+            {studentDateEvents.length > 0
+              ? <ul className="list" style={{ marginTop: 10 }}>{studentDateEvents.map(ev => <li key={ev.event_id}>{String(ev.event_at).slice(11, 16)} — {ev.title}</li>)}</ul>
+              : <EmptyState text="No events on selected date." />
+            }
           </div>
         </section>
       )}
 
-      {currentUser?.role === 'lecturer' && (
+      {/* ── lecturer tools ─────────────────────────────────────────────────── */}
+      {isLecturer && (
         <>
           <section className="grid three">
             <form className="card" onSubmit={createSection}>
-              <h2>Lecturer: Add Section</h2>
-              <label>Section Title</label>
+              <h2>Add Section</h2>
+              <label>Title</label>
               <input value={sectionTitle} onChange={e => setSectionTitle(e.target.value)} />
-
               <label>Position</label>
-              <input type="number" value={sectionPosition} onChange={e => setSectionPosition(e.target.value)} />
-
-              <button disabled={!selectedCourseId}>Create Section</button>
+              <input type="number" min="1" value={sectionPosition} onChange={e => setSectionPosition(e.target.value)} />
+              <button type="submit" disabled={!selectedCourseId}>Create Section</button>
             </form>
 
             <form className="card" onSubmit={createCalendarEvent}>
-              <h2>Lecturer: Add Calendar Event</h2>
+              <h2>Add Calendar Event</h2>
               <label>Title</label>
-              <input value={eventForm.title} onChange={e => setEventForm(prev => ({ ...prev, title: e.target.value }))} />
-
+              <input value={eventForm.title} onChange={e => setEventForm(p => ({ ...p, title: e.target.value }))} />
               <label>Type</label>
-              <select value={eventForm.event_type} onChange={e => setEventForm(prev => ({ ...prev, event_type: e.target.value }))}>
+              <select value={eventForm.event_type} onChange={e => setEventForm(p => ({ ...p, event_type: e.target.value }))}>
                 <option value="general">General</option>
                 <option value="assignment_due">Assignment Due</option>
               </select>
-
               <label>Date/Time</label>
-              <input value={eventForm.event_at} onChange={e => setEventForm(prev => ({ ...prev, event_at: e.target.value }))} placeholder="2026-05-20 09:00:00" />
-
-              <button disabled={!selectedCourseId}>Create Event</button>
+              <input value={eventForm.event_at} onChange={e => setEventForm(p => ({ ...p, event_at: e.target.value }))} placeholder="2026-06-01 09:00:00" />
+              <button type="submit" disabled={!selectedCourseId}>Create Event</button>
             </form>
 
             <form className="card" onSubmit={createForum}>
-              <h2>Lecturer: Create Forum</h2>
+              <h2>Create Forum</h2>
               <label>Forum Title</label>
               <input value={forumTitle} onChange={e => setForumTitle(e.target.value)} />
-
-              <button disabled={!selectedCourseId}>Create Forum</button>
+              <button type="submit" disabled={!selectedCourseId}>Create Forum</button>
             </form>
           </section>
 
           <section className="grid two">
             <form className="card" onSubmit={addSectionItem}>
-              <h2>Lecturer: Add Content Item</h2>
-              <p>Selected section ID: {selectedSectionId || 'None'}</p>
-
+              <h2>Add Content Item</h2>
+              {selectedSectionId
+                ? <div className="selected-banner">Section ID: {selectedSectionId}</div>
+                : <EmptyState text="Select a section from Course Tools first." />
+              }
               <label>Type</label>
-              <select value={itemForm.item_type} onChange={e => setItemForm(prev => ({ ...prev, item_type: e.target.value }))}>
+              <select value={itemForm.item_type} onChange={e => setItemForm(p => ({ ...p, item_type: e.target.value }))}>
                 <option value="link">Link</option>
-                <option value="lecture_slide">File/Slide</option>
+                <option value="lecture_slide">Lecture Slide / File</option>
                 <option value="assignment">Assignment</option>
               </select>
-
               <label>Title</label>
-              <input value={itemForm.title} onChange={e => setItemForm(prev => ({ ...prev, title: e.target.value }))} />
-
+              <input value={itemForm.title} onChange={e => setItemForm(p => ({ ...p, title: e.target.value }))} />
               {itemForm.item_type === 'link' && (
-                <>
-                  <label>URL</label>
-                  <input value={itemForm.url} onChange={e => setItemForm(prev => ({ ...prev, url: e.target.value }))} />
-                </>
+                <><label>URL</label><input value={itemForm.url} onChange={e => setItemForm(p => ({ ...p, url: e.target.value }))} /></>
               )}
-
               {itemForm.item_type === 'lecture_slide' && (
-                <>
-                  <label>File URL</label>
-                  <input value={itemForm.file_url} onChange={e => setItemForm(prev => ({ ...prev, file_url: e.target.value }))} />
-                </>
+                <><label>File URL</label><input value={itemForm.file_url} onChange={e => setItemForm(p => ({ ...p, file_url: e.target.value }))} /></>
               )}
-
               {itemForm.item_type === 'assignment' && (
                 <>
                   <label>Description</label>
-                  <input value={itemForm.description} onChange={e => setItemForm(prev => ({ ...prev, description: e.target.value }))} />
+                  <input value={itemForm.description} onChange={e => setItemForm(p => ({ ...p, description: e.target.value }))} />
                   <label>Max Score</label>
-                  <input type="number" value={itemForm.max_score} onChange={e => setItemForm(prev => ({ ...prev, max_score: e.target.value }))} />
+                  <input type="number" value={itemForm.max_score} onChange={e => setItemForm(p => ({ ...p, max_score: e.target.value }))} />
                 </>
               )}
-
-              <button disabled={!selectedSectionId}>Add Content</button>
+              <button type="submit" disabled={!selectedSectionId}>Add Item</button>
             </form>
 
             <form className="card" onSubmit={gradeAssignment}>
-              <h2>Lecturer: Grade Assignment</h2>
+              <h2>Grade Assignment</h2>
               <label>Assignment ID</label>
-              <input value={gradeForm.assignment_id} onChange={e => setGradeForm(prev => ({ ...prev, assignment_id: e.target.value }))} />
-
+              <input value={gradeForm.assignment_id} onChange={e => setGradeForm(p => ({ ...p, assignment_id: e.target.value }))} />
               <label>Student ID</label>
-              <input value={gradeForm.student_id} onChange={e => setGradeForm(prev => ({ ...prev, student_id: e.target.value }))} />
-
+              <input value={gradeForm.student_id} onChange={e => setGradeForm(p => ({ ...p, student_id: e.target.value }))} />
               <label>Grade</label>
-              <input type="number" value={gradeForm.grade} onChange={e => setGradeForm(prev => ({ ...prev, grade: e.target.value }))} />
-
+              <input type="number" step="0.01" value={gradeForm.grade} onChange={e => setGradeForm(p => ({ ...p, grade: e.target.value }))} />
               <button type="submit">Submit Grade</button>
             </form>
           </section>
         </>
       )}
 
-      {currentUser && currentUser.role !== 'admin' && (
-        <section className="grid two">
-          <form className="card" onSubmit={createThread}>
-            <h2>Discussion: New Thread</h2>
-            <p>Selected forum ID: {selectedForumId || 'None'}</p>
+      {/* ── discussion threads & replies ───────────────────────────────────── */}
+      {currentUser && !isAdmin && (
+        <>
+          <section className="grid two">
+            <form className="card" onSubmit={createThread}>
+              <h2>New Discussion Thread</h2>
+              {selectedForumId
+                ? <div className="selected-banner">Forum ID: {selectedForumId}</div>
+                : <EmptyState text="Select a forum from Course Tools first." />
+              }
+              <label>Title</label>
+              <input value={threadForm.title} onChange={e => setThreadForm(p => ({ ...p, title: e.target.value }))} />
+              <label>Post</label>
+              <textarea value={threadForm.body} onChange={e => setThreadForm(p => ({ ...p, body: e.target.value }))} rows={4} />
+              <button type="submit" disabled={!selectedForumId}>Post Thread</button>
+            </form>
 
-            <label>Title</label>
-            <input value={threadForm.title} onChange={e => setThreadForm(prev => ({ ...prev, title: e.target.value }))} />
-
-            <label>Post</label>
-            <textarea value={threadForm.body} onChange={e => setThreadForm(prev => ({ ...prev, body: e.target.value }))} />
-
-            <button disabled={!selectedForumId}>Create Thread</button>
-          </form>
-
-          <div className="card">
-            <div className="section-header">
-              <h2>Discussion Threads</h2>
-              <button disabled={!selectedForumId} onClick={() => loadThreads()}>Refresh Threads</button>
+            <div className="card">
+              <div className="section-header">
+                <h2>Threads</h2>
+                <button disabled={!selectedForumId} onClick={() => loadThreads()}>↻ Refresh</button>
+              </div>
+              {threads.length === 0
+                ? <EmptyState text="No threads yet." />
+                : <ul className="list">
+                    {threads.map(t => (
+                      <li key={t.thread_id} style={{ marginBottom: 8 }}>
+                        <button
+                          type="button"
+                          style={{ marginRight: 6 }}
+                          onClick={() => { setSelectedThreadId(t.thread_id); loadReplies(t.thread_id); }}
+                        >
+                          {String(selectedThreadId) === String(t.thread_id) ? '✓ Open' : 'Open'}
+                        </button>
+                        <strong>{t.title}</strong>
+                        <span style={{ fontSize: '0.8rem', color: '#8892a4', marginLeft: 6 }}>{String(t.created_at).slice(0, 16)}</span>
+                      </li>
+                    ))}
+                  </ul>
+              }
             </div>
+          </section>
 
-            <ul>
-              {threads.map(t => (
-                <li key={t.thread_id}>
-                  <button onClick={() => {
-                    setSelectedThreadId(t.thread_id);
-                    loadReplies(t.thread_id);
-                  }}>
-                    Select Thread
-                  </button>
-                  {t.title}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+          <section className="grid two">
+            <form className="card" onSubmit={createReply}>
+              <h2>Reply to Thread</h2>
+              {selectedThreadId
+                ? <div className="selected-banner">Thread ID: {selectedThreadId}</div>
+                : <EmptyState text="Open a thread above first." />
+              }
+              <label>Reply to Reply ID (optional — for nested replies)</label>
+              <input
+                type="number"
+                value={parentReplyId}
+                onChange={e => setParentReplyId(e.target.value)}
+                placeholder="Leave blank to reply to thread"
+              />
+              <label>Message</label>
+              <textarea value={replyBody} onChange={e => setReplyBody(e.target.value)} rows={4} />
+              <button type="submit" disabled={!selectedThreadId}>Post Reply</button>
+            </form>
+
+            <div className="card" style={{ overflowY: 'auto', maxHeight: 480 }}>
+              <h2>Thread Replies</h2>
+              {threadReplies ? (
+                <>
+                  <div style={{ background: '#f8faff', border: '1px solid #e2e6ee', borderRadius: 8, padding: '10px 14px', marginBottom: 12 }}>
+                    <strong>{threadReplies.thread?.title}</strong>
+                    <p style={{ margin: '4px 0 0' }}>{threadReplies.thread?.body}</p>
+                  </div>
+                  <ReplyTree replies={threadReplies.replies} />
+                </>
+              ) : (
+                <EmptyState text="Open a thread to see replies." />
+              )}
+            </div>
+          </section>
+        </>
       )}
 
-      {currentUser && currentUser.role !== 'admin' && (
-        <section className="grid two">
-          <form className="card" onSubmit={createReply}>
-            <h2>Reply to Thread</h2>
-            <p>Selected thread ID: {selectedThreadId || 'None'}</p>
-            <textarea value={replyBody} onChange={e => setReplyBody(e.target.value)} />
-            <button disabled={!selectedThreadId}>Post Reply</button>
-          </form>
-
-          <div className="card">
-            <h2>Thread Replies</h2>
-            <pre>{threadReplies ? JSON.stringify(threadReplies, null, 2) : 'No thread selected.'}</pre>
-          </div>
-        </section>
-      )}
-
+      {/* ── student average ────────────────────────────────────────────────── */}
       <section className="card">
-        <h2>Student Average</h2>
-        <label>Student ID</label>
-        <input value={averageStudentId} onChange={e => setAverageStudentId(e.target.value)} placeholder={currentUser?.student_id ? String(currentUser.student_id) : 'Student ID'} />
-        <button onClick={loadAverage}>Load Average</button>
-        <pre>{average ? JSON.stringify(average, null, 2) : ''}</pre>
+        <h2>Student Grade Average</h2>
+        <div className="button-row">
+          <div style={{ flex: 1 }}>
+            <label>Student ID</label>
+            <input
+              value={averageStudentId}
+              onChange={e => setAverageStudentId(e.target.value)}
+              placeholder={currentUser?.student_id ? String(currentUser.student_id) : 'Enter student ID'}
+            />
+          </div>
+          <button onClick={loadAverage} style={{ alignSelf: 'flex-end', marginBottom: 12 }}>Load Average</button>
+        </div>
+        {average && (
+          <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#4963d1', marginTop: 4 }}>
+            {average.overall_average !== null ? `${Number(average.overall_average).toFixed(2)}%` : 'No grades yet'}
+          </div>
+        )}
       </section>
 
+      {/* ── reports ────────────────────────────────────────────────────────── */}
       <section className="card">
         <h2>Reports</h2>
-        <div className="button-row">
-          <button onClick={() => loadReport('courses50', '/reports/courses_50_plus_students')}>Courses with 50+ Students</button>
-          <button onClick={() => loadReport('students5', '/reports/students_5_plus_courses')}>Students with 5+ Courses</button>
-          <button onClick={() => loadReport('lecturers3', '/reports/lecturers_3_plus_courses')}>Lecturers with 3+ Courses</button>
-          <button onClick={() => loadReport('topCourses', '/reports/top_10_enrolled_courses')}>Top 10 Courses</button>
-          <button onClick={() => loadReport('topStudents', '/reports/top_10_students_by_average')}>Top 10 Students</button>
+        <div className="button-row" style={{ flexWrap: 'wrap' }}>
+          <button onClick={() => loadReport('courses50',    '/reports/courses_50_plus_students')}>📊 Courses with 50+ Students</button>
+          <button onClick={() => loadReport('students5',   '/reports/students_5_plus_courses')}>📊 Students with 5+ Courses</button>
+          <button onClick={() => loadReport('lecturers3',  '/reports/lecturers_3_plus_courses')}>📊 Lecturers with 3+ Courses</button>
+          <button onClick={() => loadReport('topCourses',  '/reports/top_10_enrolled_courses')}>🏆 Top 10 Enrolled Courses</button>
+          <button onClick={() => loadReport('topStudents', '/reports/top_10_students_by_average')}>🏆 Top 10 Students by Average</button>
         </div>
-        <pre>{JSON.stringify(reports, null, 2)}</pre>
+
+        {Object.entries(reports).map(([key, data]) => {
+          const rows = data.courses || data.students || data.lecturers || [];
+          if (!rows.length) return <p key={key} style={{ color: '#8892a4' }}>{key}: no data.</p>;
+          const keys = Object.keys(rows[0]);
+          return (
+            <div key={key} style={{ marginTop: 16 }}>
+              <h3 style={{ margin: '0 0 6px' }}>{key}</h3>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr>{keys.map(k => <th key={k}>{k}</th>)}</tr></thead>
+                  <tbody>{rows.map((row, i) => <tr key={i}>{keys.map(k => <td key={k}>{String(row[k] ?? '')}</td>)}</tr>)}</tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
       </section>
 
-      <section className="message">
-        <strong>Status</strong>
-        <pre>{message}</pre>
+      {/* ── status message ─────────────────────────────────────────────────── */}
+      <section className="message" style={{ borderLeft: `4px solid ${msgType === 'error' ? '#d14949' : '#4963d1'}` }}>
+        <strong style={{ color: msgType === 'error' ? '#d14949' : '#4963d1' }}>
+          {msgType === 'error' ? '⚠ Error' : 'ℹ Status'}
+        </strong>
+        <pre style={{ margin: '4px 0 0' }}>{message || 'Ready.'}</pre>
       </section>
+
     </main>
   );
 }
 
+// ─── styles ───────────────────────────────────────────────────────────────────
+
 const styles = `
   * { box-sizing: border-box; }
-  body { margin: 0; background: #f3f5f8; color: #172033; font-family: Arial, sans-serif; }
-  button { border: 0; border-radius: 8px; padding: 9px 12px; background: #172033; color: white; cursor: pointer; margin: 3px; }
-  button:disabled { opacity: 0.45; cursor: not-allowed; }
-  input, select, textarea { width: 100%; padding: 10px; margin: 6px 0 12px; border: 1px solid #cdd3df; border-radius: 8px; background: white; }
-  textarea { min-height: 90px; resize: vertical; }
-  label { font-size: 0.85rem; font-weight: bold; color: #3b4658; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 10px; border-bottom: 1px solid #e2e6ee; text-align: left; }
-  th { background: #eef1f7; }
-  tr { transition: 0.2s; }
-  tr:hover { background: #f8faff; cursor: pointer; }
-  pre { white-space: pre-wrap; overflow-x: auto; }
-  .page { max-width: 1200px; margin: 0 auto; padding: 28px; }
-  .hero { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 22px; }
-  .hero h1 { margin: 6px 0; font-size: 2.2rem; }
-  .eyebrow { margin: 0; font-weight: bold; color: #4963d1; text-transform: uppercase; letter-spacing: 0.08em; }
+  body { margin: 0; background: #f3f5f8; color: #172033; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; }
+  h1 { margin: 0; font-size: 2rem; }
+  h2 { margin: 0 0 14px; font-size: 1.1rem; font-weight: 700; }
+  h3 { margin: 10px 0 6px; font-size: 1rem; }
+  button { border: 0; border-radius: 8px; padding: 9px 14px; background: #172033; color: white; cursor: pointer; margin: 3px; font-size: 0.875rem; transition: opacity .15s; }
+  button:hover:not(:disabled) { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  input, select, textarea { width: 100%; padding: 10px; margin: 4px 0 12px; border: 1.5px solid #cdd3df; border-radius: 8px; background: white; font-size: 0.9rem; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #4963d1; }
+  textarea { min-height: 80px; resize: vertical; }
+  label { display: block; font-size: 0.82rem; font-weight: 600; color: #3b4658; margin-top: 4px; }
+  a { color: #4963d1; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid #e2e6ee; text-align: left; }
+  th { background: #eef1f7; font-weight: 600; }
+  tr:hover td { background: #f8faff; }
+  pre { white-space: pre-wrap; overflow-x: auto; margin: 0; font-size: 0.85rem; }
+  ul { margin: 0; padding-left: 18px; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+  .hero { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+  .eyebrow { margin: 0 0 4px; font-weight: 700; color: #4963d1; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem; }
   .grid { display: grid; gap: 18px; margin-bottom: 18px; }
   .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .card, .message, .user-card { background: white; border: 1px solid #e0e5ef; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(18, 33, 60, 0.06); margin-bottom: 18px; }
-  .user-card { min-width: 260px; margin: 0; display: grid; gap: 8px; }
-  .section-header, .button-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .card { background: white; border: 1px solid #e0e5ef; border-radius: 16px; padding: 22px; box-shadow: 0 4px 20px rgba(18,33,60,.06); margin-bottom: 18px; }
+  .message { background: white; border: 1px solid #e0e5ef; border-radius: 16px; padding: 16px 20px; box-shadow: 0 4px 20px rgba(18,33,60,.06); margin-bottom: 18px; }
+  .user-card { background: white; border: 1px solid #e0e5ef; border-radius: 16px; padding: 16px 18px; box-shadow: 0 4px 20px rgba(18,33,60,.06); min-width: 240px; display: flex; flex-direction: column; gap: 8px; }
+  .section-header, .button-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 10px; }
   .table-wrap { overflow-x: auto; }
-  .list { margin: 0; padding-left: 20px; }
-  .nested { margin-top: 12px; }
-  .mini-card { border: 1px solid #e2e6ee; border-radius: 12px; padding: 12px; margin: 10px 0; }
-  .selected-row { background: #e8f0ff !important; }
-  .selected-banner { background: #eef4ff; border: 1px solid #d4e2ff; padding: 12px; border-radius: 10px; margin: 12px 0; }
-  @media (max-width: 850px) { .two, .three { grid-template-columns: 1fr; } .hero { flex-direction: column; align-items: flex-start; } }
+  .list { list-style: disc; }
+  .nested { margin-top: 14px; border-top: 1px solid #eef1f7; padding-top: 14px; }
+  .mini-card { border: 1px solid #e2e6ee; border-radius: 12px; padding: 12px 14px; margin: 8px 0; }
+  .selected-row td { background: #eef4ff !important; }
+  .selected-banner { background: #eef4ff; border: 1px solid #ccdaff; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 0.9rem; }
+  @media (max-width: 860px) { .two, .three { grid-template-columns: 1fr; } .hero { flex-direction: column; } }
 `;
 
-const styleTag = document.createElement('style');
-styleTag.innerHTML = styles;
-document.head.appendChild(styleTag);
+const tag = document.createElement('style');
+tag.innerHTML = styles;
+document.head.appendChild(tag);
 
 createRoot(document.getElementById('root')).render(<App />);

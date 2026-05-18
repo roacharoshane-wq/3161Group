@@ -11,19 +11,19 @@
       "name": "Register User",
       "item": [
         {
-          "name": "create_account",
+          "name": "create_account admin",
           "request": {
             "auth": {
               "type": "basic",
               "basic": [
                 {
-                  "key": "username",
-                  "value": "{{adminuser}}",
+                  "key": "password",
+                  "value": "{{dbpassword}}",
                   "type": "string"
                 },
                 {
-                  "key": "password",
-                  "value": "{{adminpass}}",
+                  "key": "username",
+                  "value": "{{dbuser}}",
                   "type": "string"
                 }
               ]
@@ -32,7 +32,89 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password_hash\": \"hashedpassword123\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Brown\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin10006@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"Mad\",\r\n  \"last_name\": \"Max\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/register_user",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "register_user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create account student",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"student_no\": \"620000001\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Brown\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/register_user",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "register_user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register lecturer",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"Mary\",\r\n  \"last_name\": \"Smith\",\r\n  \"created_by_admin_id\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -55,48 +137,891 @@
     },
     {
       "name": "User Login",
-      "item": []
+      "item": [
+        {
+          "name": "login student",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/login",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login lecturer",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/login",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login admin",
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/register_user",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "register_user"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     },
     {
-      "name": "login",
-      "request": {
-        "auth": {
-          "type": "basic",
-          "basic": [
-            {
-              "key": "username",
-              "value": "{{adminuser}}",
-              "type": "string"
+      "name": "Create Course",
+      "item": [
+        {
+          "name": "create course",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"course_code\": \"COMP9999\",\r\n  \"course_name\": \"Should Not Work\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            {
-              "key": "password",
-              "value": "{{adminpass}}",
-              "type": "string"
+            "url": {
+              "raw": "{{hostname}}/courses",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses"
+              ]
             }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password_hash\": \"pass123\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "{{hostname}}/login",
-          "host": [
-            "{{hostname}}"
-          ],
-          "path": [
-            "login"
-          ]
+          },
+          "response": []
         }
-      },
-      "response": []
+      ]
+    },
+    {
+      "name": "Retrieve Courses",
+      "item": [
+        {
+          "name": "retrieve courses",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve courses for student",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/student/1",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "student",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve courses for lecturer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/lecturer/1",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "lecturer",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Register for Course",
+      "item": [
+        {
+          "name": "assign lecturer",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"lecturer_id\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses/1/assign_lecturer",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "assign_lecturer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "student register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses/1/register",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Retrieve Members",
+      "item": [
+        {
+          "name": "retrieve members",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/1/members",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Retrieve Calendar Events",
+      "item": [
+        {
+          "name": "retrieve calendar events for course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/1/calendar",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "calendar"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve calendar event by student by date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/calendar/student/1?date=2026-06-01",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "calendar",
+                "student",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-06-01"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Create Calendar Events",
+      "item": [
+        {
+          "name": "create calendar event",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"title\": \"Assignment 1 Due\",\r\n  \"event_type\": \"assignment_due\",\r\n  \"event_at\": \"2026-06-01 23:59:00\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses/1/calendar",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "calendar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forums",
+      "item": [
+        {
+          "name": "create forum",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"title\": \"General Discussion\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses/1/forums",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "forums"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve forums for course",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/1/forums",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "forums"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Discussion Thread",
+      "item": [
+        {
+          "name": "retrieve threads for forum",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/forums/1/threads",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "forums",
+                "1",
+                "threads"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add new thread as student",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"title\": \"Question about Assignment\",\r\n  \"body\": \"Can someone explain question 2?\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/forums/1/threads",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "forums",
+                "1",
+                "threads"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reply to thread",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"body\": \"I think we need to use an INNER JOIN.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/threads/1/replies",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "threads",
+                "1",
+                "replies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "reply to a reply",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"parent_reply_id\": 1,\r\n  \"body\": \"Yes, that makes sense.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/threads/1/replies",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "threads",
+                "1",
+                "replies"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve thread replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/threads/1/replies",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "threads",
+                "1",
+                "replies"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Course Content",
+      "item": [
+        {
+          "name": "add course section as a lecturer",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"title\": \"Week 1\",\r\n  \"position\": 1\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/courses/1/sections",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "sections"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add link",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"item_type\": \"link\",\r\n  \"title\": \"Intro to Databases\",\r\n  \"url\": \"https://example.com/database-intro\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/sections/1/items",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "sections",
+                "1",
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add slide",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"item_type\": \"lecture_slide\",\r\n  \"title\": \"Week 1 Slides\",\r\n  \"file_url\": \"slides/week1.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/sections/1/items",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "sections",
+                "1",
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "add assignment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"item_type\": \"assignment\",\r\n  \"title\": \"Assignment 1\",\r\n  \"description\": \"Complete all database questions.\",\r\n  \"max_score\": 100\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/sections/1/items",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "sections",
+                "1",
+                "items"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve course content",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/courses/1/content",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "courses",
+                "1",
+                "content"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Assignments",
+      "item": [
+        {
+          "name": "student submit assignment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"content_url\": \"submissions/student1_assignment1.pdf\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/assignments/2053/submit",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "assignments",
+                "2053",
+                "submit"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "lecturer submit grade",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"student_id\": 1,\r\n  \"grade\": 85\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{hostname}}/assignments/1026/grade",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "assignments",
+                "1026",
+                "grade"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "retrieve student final average",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/students/1/average",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "students",
+                "1",
+                "average"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "courses with 50 or more students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/reports/courses_50_plus_students",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "reports",
+                "courses_50_plus_students"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "students doing 5 or more courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/reports/students_5_plus_courses",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "reports",
+                "students_5_plus_courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "lecturers teaching 3 or more courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/reports/lecturers_3_plus_courses",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "reports",
+                "lecturers_3_plus_courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "top 10 most enrolled courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/reports/top_10_enrolled_courses",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "reports",
+                "top_10_enrolled_courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "top 10 students with highest overall averages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{hostname}}/reports/top_10_students_by_average",
+              "host": [
+                "{{hostname}}"
+              ],
+              "path": [
+                "reports",
+                "top_10_students_by_average"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
