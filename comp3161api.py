@@ -1,5 +1,8 @@
+import bcrypt
 from flask import Flask, request, make_response
+
 from flask_httpauth import HTTPBasicAuth
+from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv
 import os
@@ -9,6 +12,15 @@ auth = HTTPBasicAuth()
 
 
 app = Flask(__name__)
+
+CORS(app)
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    return response
 
 DB_USER = os.getenv('DB_USER')
 DB_PASSWORD = os.getenv('DB_PASSWORD')
@@ -22,6 +34,28 @@ def verify_password(username,password):
     if username == os.getenv('AD_USERNAME') and password==os.getenv('ADMIN_PASSWORD'):
         return username
     
+
+
+
+def authenticate_user(cursor, role, email, password):
+    """Return the user row if the email/password matches the bcrypt hash."""
+    if role not in ('student', 'lecturer', 'admin'):
+        return None
+
+    cursor.execute(
+        f"SELECT * FROM {role} WHERE email = %s",
+        (email,)
+    )
+    user = cursor.fetchone()
+
+    if user and bcrypt.checkpw(
+        password.encode('utf-8'),
+        user['password_hash'].encode('utf-8')
+    ):
+        return user
+
+    return None
+
 
 
 
@@ -41,7 +75,8 @@ def register_user():
 
         role = content['role'].lower()
         email = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
+        password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         first_name = content['first_name']
         last_name = content['last_name']
         created_by_admin_id = content.get('created_by_admin_id')
@@ -107,32 +142,42 @@ def login():
             host=DB_HOST,
             database=DB_NAME
         )
+
         cursor = cnx.cursor(dictionary=True)
 
         content = request.json
+
         role = content['role'].lower()
         email = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
 
-        if role == 'student':
-            query = "SELECT * FROM student WHERE email = %s AND password_hash = %s"
-        elif role == 'lecturer':
-            query = "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s"
-        else:
-            return make_response({"error": "Only students and lecturers can login here"}, 400)
+        if role not in ('student', 'lecturer', 'admin'):
+            return make_response(
+                {"error": "Invalid role. Use admin, lecturer, or student."},
+                400
+            )
 
-        cursor.execute(query, (email, password_hash))
+        cursor.execute(
+            f"SELECT * FROM {role} WHERE email = %s",
+            (email,)
+        )
+
         user = cursor.fetchone()
 
         cursor.close()
         cnx.close()
 
-        if user:
+        if user and bcrypt.checkpw(
+            password.encode('utf-8'),
+            user['password_hash'].encode('utf-8')
+        ):
+
             return make_response({
                 "success": "login successful",
                 "role": role,
                 "user": user
             }, 200)
+
         else:
             return make_response({
                 "error": "Invalid email or password"
@@ -141,7 +186,6 @@ def login():
     except Exception as e:
         print(e)
         return make_response({"error": str(e)}, 400)
-
 
 
 
@@ -156,30 +200,26 @@ def create_course():
         )
         cursor = cnx.cursor(dictionary=True)
         content = request.json
- 
-        email         = content['email']
-        password_hash = content['password_hash']
-        role          = content['role'].lower()
- 
+
+        email = content['email']
+        password = content['password']
+        role = content['role'].lower()
+
         if role != 'admin':
             cursor.close()
             cnx.close()
             return make_response({"error": "Only admins can create courses."}, 403)
- 
-        cursor.execute(
-            "SELECT * FROM admin WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        admin = cursor.fetchone()
- 
+
+        admin = authenticate_user(cursor, role, email, password)
+
         if not admin:
             cursor.close()
             cnx.close()
             return make_response({"error": "Invalid admin credentials."}, 401)
- 
+
         course_code = content['course_code']
         course_name = content['course_name']
- 
+
         cursor.execute(
             """
             INSERT INTO course (course_code, course_name, created_by_admin_id)
@@ -188,24 +228,20 @@ def create_course():
             (course_code, course_name, admin['admin_id'])
         )
         cnx.commit()
- 
+
         course_id = cursor.lastrowid
- 
+
         cursor.close()
         cnx.close()
- 
+
         return make_response({
             "success": "course created",
             "course_id": course_id
         }, 201)
- 
+
     except Exception as e:
         print(e)
         return make_response({"error": str(e)}, 400)
- 
-
-
-
 
 
 
@@ -330,27 +366,25 @@ def assign_lecturer(course_id):
         )
         cursor = cnx.cursor(dictionary=True)
         content = request.json
- 
-        email         = content['email']
-        password_hash = content['password_hash']
-        role          = content['role'].lower()
- 
+
+        email = content['email']
+        password = content['password']
+        role = content['role'].lower()
+
         if role != 'admin':
             cursor.close()
             cnx.close()
             return make_response({"error": "Only admins can assign lecturers."}, 403)
- 
-        cursor.execute(
-            "SELECT * FROM admin WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        if not cursor.fetchone():
+
+        admin = authenticate_user(cursor, role, email, password)
+
+        if not admin:
             cursor.close()
             cnx.close()
             return make_response({"error": "Invalid admin credentials."}, 401)
- 
+
         lecturer_id = content['lecturer_id']
- 
+
         cursor.execute(
             "SELECT * FROM course_lecturer WHERE course_id = %s",
             (course_id,)
@@ -359,21 +393,36 @@ def assign_lecturer(course_id):
             cursor.close()
             cnx.close()
             return make_response({"error": "A lecturer is already assigned to this course."}, 409)
- 
+
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM course_lecturer WHERE lecturer_id = %s",
+            (lecturer_id,)
+        )
+        count = cursor.fetchone()['total']
+
+        if count >= 5:
+            cursor.close()
+            cnx.close()
+            return make_response({"error": "A lecturer cannot teach more than 5 courses."}, 409)
+
         cursor.execute(
             "INSERT INTO course_lecturer (course_id, lecturer_id) VALUES (%s, %s)",
             (course_id, lecturer_id)
         )
         cnx.commit()
- 
+
         cursor.close()
         cnx.close()
- 
+
         return make_response({"success": "Lecturer assigned to course."}, 201)
- 
+
     except Exception as e:
         print(e)
         return make_response({"error": str(e)}, 400)
+
+
+
+
  
 
 
@@ -390,41 +439,61 @@ def register_for_course(course_id):
         )
         cursor = cnx.cursor(dictionary=True)
         content = request.json
- 
-        email         = content['email']
-        password_hash = content['password_hash']
-        role          = content['role'].lower()
- 
+
+        email = content['email']
+        password = content['password']
+        role = content['role'].lower()
+
         if role != 'student':
             cursor.close()
             cnx.close()
             return make_response({"error": "Only students can register for courses."}, 403)
- 
-        cursor.execute(
-            "SELECT * FROM student WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        student = cursor.fetchone()
- 
+
+        student = authenticate_user(cursor, role, email, password)
+
         if not student:
             cursor.close()
             cnx.close()
             return make_response({"error": "Invalid student credentials."}, 401)
- 
+
+        cursor.execute(
+            "SELECT COUNT(*) AS total FROM course_student WHERE student_id = %s",
+            (student['student_id'],)
+        )
+        count = cursor.fetchone()['total']
+
+        if count >= 6:
+            cursor.close()
+            cnx.close()
+            return make_response({"error": "A student cannot register for more than 6 courses."}, 409)
+
+        cursor.execute(
+            "SELECT * FROM course_student WHERE course_id = %s AND student_id = %s",
+            (course_id, student['student_id'])
+        )
+        if cursor.fetchone():
+            cursor.close()
+            cnx.close()
+            return make_response({"error": "You are already registered for this course."}, 409)
+
         cursor.execute(
             "INSERT INTO course_student (course_id, student_id) VALUES (%s, %s)",
             (course_id, student['student_id'])
         )
         cnx.commit()
- 
+
         cursor.close()
         cnx.close()
- 
+
         return make_response({"success": "Registered for course."}, 201)
- 
+
     except Exception as e:
         print(e)
         return make_response({"error": str(e)}, 400)
+
+
+
+
  
  
 
@@ -579,7 +648,7 @@ def create_calendar_event(course_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'lecturer':
@@ -587,11 +656,7 @@ def create_calendar_event(course_id):
             cnx.close()
             return make_response({"error": "Only lecturers can create calendar events."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        lecturer = cursor.fetchone()
+        lecturer = authenticate_user(cursor, role, email, password)
  
         if not lecturer:
             cursor.close()
@@ -681,7 +746,7 @@ def create_forum(course_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'lecturer':
@@ -689,11 +754,7 @@ def create_forum(course_id):
             cnx.close()
             return make_response({"error": "Only lecturers can create forums."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        lecturer = cursor.fetchone()
+        lecturer = authenticate_user(cursor, role, email, password)
  
         if not lecturer:
             cursor.close()
@@ -772,7 +833,7 @@ def create_thread(forum_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role not in ('student', 'lecturer'):
@@ -780,11 +841,7 @@ def create_thread(forum_id):
             cnx.close()
             return make_response({"error": "Only students or lecturers can post threads."}, 403)
  
-        cursor.execute(
-            f"SELECT * FROM {role} WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        user = cursor.fetchone()
+        user = authenticate_user(cursor, role, email, password)
  
         if not user:
             cursor.close()
@@ -910,7 +967,7 @@ def reply_to_thread(thread_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role not in ('student', 'lecturer'):
@@ -918,11 +975,7 @@ def reply_to_thread(thread_id):
             cnx.close()
             return make_response({"error": "Only students or lecturers can post replies."}, 403)
  
-        cursor.execute(
-            f"SELECT * FROM {role} WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        user = cursor.fetchone()
+        user = authenticate_user(cursor, role, email, password)
  
         if not user:
             cursor.close()
@@ -1063,7 +1116,7 @@ def add_section(course_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'lecturer':
@@ -1071,11 +1124,7 @@ def add_section(course_id):
             cnx.close()
             return make_response({"error": "Only lecturers can add sections."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        lecturer = cursor.fetchone()
+        lecturer = authenticate_user(cursor, role, email, password)
  
         if not lecturer:
             cursor.close()
@@ -1142,7 +1191,7 @@ def add_section_item(section_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'lecturer':
@@ -1150,11 +1199,7 @@ def add_section_item(section_id):
             cnx.close()
             return make_response({"error": "Only lecturers can add content."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        lecturer = cursor.fetchone()
+        lecturer = authenticate_user(cursor, role, email, password)
  
         if not lecturer:
             cursor.close()
@@ -1239,7 +1284,7 @@ def submit_assignment(assignment_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'student':
@@ -1247,11 +1292,7 @@ def submit_assignment(assignment_id):
             cnx.close()
             return make_response({"error": "Only students can submit assignments."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM student WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        student = cursor.fetchone()
+        student = authenticate_user(cursor, role, email, password)
  
         if not student:
             cursor.close()
@@ -1310,7 +1351,7 @@ def grade_assignment(assignment_id):
         content = request.json
  
         email         = content['email']
-        password_hash = content['password_hash']
+        password = content['password']
         role          = content['role'].lower()
  
         if role != 'lecturer':
@@ -1318,11 +1359,8 @@ def grade_assignment(assignment_id):
             cnx.close()
             return make_response({"error": "Only lecturers can submit grades."}, 403)
  
-        cursor.execute(
-            "SELECT * FROM lecturer WHERE email = %s AND password_hash = %s",
-            (email, password_hash)
-        )
-        if not cursor.fetchone():
+        lecturer = authenticate_user(cursor, role, email, password)
+        if not lecturer:
             cursor.close()
             cnx.close()
             return make_response({"error": "Invalid lecturer credentials."}, 401)

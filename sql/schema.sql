@@ -301,3 +301,8 @@ CREATE INDEX idx_calendar_event_course ON calendar_event (course_id);
 CREATE INDEX idx_forum_course ON discussion_forum (course_id);
 CREATE INDEX idx_thread_forum ON discussion_thread (forum_id);
 CREATE INDEX idx_reply_thread ON discussion_reply (thread_id);
+
+
+
+
+
