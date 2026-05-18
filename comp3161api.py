@@ -18,9 +18,14 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME     = os.getenv("DB_NAME")
 DB_HOST     = os.getenv("DB_HOST", "127.0.0.1")
 
+BASIC_AUTH_USER = os.getenv("BASIC_AUTH_USER") or os.getenv("AD_USERNAME")
+BASIC_AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASSWORD") or os.getenv("ADMIN_PASSWORD")
+
 @auth.verify_password
 def verify_password(username, password):
-    return username == DB_USER and password == DB_PASSWORD
+    if not BASIC_AUTH_USER or not BASIC_AUTH_PASSWORD:
+        return False
+    return username == BASIC_AUTH_USER and password == BASIC_AUTH_PASSWORD
 
 def get_db():
     if not DB_USER or not DB_PASSWORD or not DB_NAME:
@@ -244,6 +249,36 @@ def get_all_courses():
         courses = cursor.fetchall()
         cursor.close(); cnx.close()
         return json_response({"courses": courses}, 200)
+
+    except Exception as e:
+        print(e)
+        return json_response({"error": str(e)}, 400)
+
+
+@app.route("/lecturers", methods=["GET"])
+def get_all_lecturers():
+    try:
+        cnx = get_db()
+        cursor = cnx.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM lecturer ORDER BY last_name, first_name")
+        lecturers = cursor.fetchall()
+        cursor.close(); cnx.close()
+        return json_response({"lecturers": lecturers}, 200)
+
+    except Exception as e:
+        print(e)
+        return json_response({"error": str(e)}, 400)
+
+
+@app.route("/forums", methods=["GET"])
+def get_all_forums():
+    try:
+        cnx = get_db()
+        cursor = cnx.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM discussion_forum ORDER BY title")
+        forums = cursor.fetchall()
+        cursor.close(); cnx.close()
+        return json_response({"forums": forums}, 200)
 
     except Exception as e:
         print(e)
