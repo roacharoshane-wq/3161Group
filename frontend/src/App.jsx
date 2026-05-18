@@ -891,6 +891,7 @@ function StudentCourses({ post, get, flash, options, user }) {
   const [sid, setSid] = useState('');
   const [date, setDate] = useState('');
   const [myCourses, setMyCourses] = useState([]);
+  const [myCoursesLoaded, setMyCoursesLoaded] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [calendarSearched, setCalendarSearched] = useState(false);
   const resolvedStudentId = sid || user?.student_id || '';
@@ -944,8 +945,9 @@ function StudentCourses({ post, get, flash, options, user }) {
         />
         <button style={btn('secondary')} onClick={async () => {
           if (!resolvedStudentId) return flash('Student ID required.', true);
-          const data = await get(`/courses/student/${resolvedStudentId}`, 'Student courses loaded.');
+          const data = await get(`/courses/student/${resolvedStudentId}`, null);
           setMyCourses(Array.isArray(data?.courses) ? data.courses : []);
+          setMyCoursesLoaded(true);
         }}>Load My Courses</button>
         {!sid && resolvedStudentId && (
           <div className="section-note">Using my student ID: {resolvedStudentId}</div>
@@ -962,6 +964,8 @@ function StudentCourses({ post, get, flash, options, user }) {
               </div>
             ))}
           </div>
+        ) : myCoursesLoaded ? (
+          <div className="section-note">No courses have been selected.</div>
         ) : (
           <div className="section-note">Courses appear here after loading.</div>
         )}

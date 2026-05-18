@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "772b176d-3c41-4134-9e81-bb0ffedcffb2",
-    "name": "COMP3161FinalProject",
+    "name": "COMP3161Group",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "48085872",
     "_collection_link": "https://go.postman.co/collection/48085872-772b176d-3c41-4134-9e81-bb0ffedcffb2?source=collection_link"
@@ -32,7 +32,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin10006@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"Mad\",\r\n  \"last_name\": \"Max\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"johndoe@gmail.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Doe\",\r\n  \"created_by_admin_id\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -73,7 +73,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"student\",\r\n  \"student_no\": \"620000001\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"John\",\r\n  \"last_name\": \"Brown\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"student_no\": \"1009\",\r\n  \"email\": \"justinbieber@gmail.com\",\r\n  \"password\": \"1234567890\",\r\n  \"first_name\": \"Justin\",\r\n  \"last_name\": \"Bieber\",\r\n  \"created_by_admin_id\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -114,7 +114,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"Mary\",\r\n  \"last_name\": \"Smith\",\r\n  \"created_by_admin_id\": 1\r\n}",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"tonythwaites@gmail.com\",\r\n  \"password\": \"password123\",\r\n  \"first_name\": \"Tony\",\r\n  \"last_name\": \"Thwaites\",\r\n  \"created_by_admin_id\": 1\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -160,7 +160,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"maxwellgrant@gmail.com\",\r\n  \"password\": \"1234567890\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -201,7 +201,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"tonythwaites@gmail.com\",\r\n  \"password\": \"password123\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -242,7 +242,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"johndoe@gmail.com\",\r\n  \"password\": \"password123\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -250,12 +250,12 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/register_user",
+              "raw": "{{hostname}}/login",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
-                "register_user"
+                "login"
               ]
             }
           },
@@ -273,7 +273,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"course_code\": \"COMP9999\",\r\n  \"course_name\": \"Should Not Work\"\r\n}",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin@example.com\",\r\n  \"password\": \"hashed_password_here\",\r\n  \"course_code\": \"COM3220\",\r\n  \"course_name\": \"AI\"\r\n}\r\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -332,14 +332,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/courses/student/1",
+              "raw": "{{hostname}}/courses/student/131078",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
                 "student",
-                "1"
+                "131078"
               ]
             }
           },
@@ -351,14 +351,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/courses/lecturer/1",
+              "raw": "{{hostname}}/courses/lecturer/2",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
                 "lecturer",
-                "1"
+                "2"
               ]
             }
           },
@@ -376,7 +376,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"lecturer_id\": 1\r\n}",
+              "raw": "{\r\n  \"role\": \"admin\",\r\n  \"email\": \"admin2026@example.com\",\r\n  \"password\": \"password123\",\r\n  \"lecturer_id\": 2\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -384,13 +384,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/courses/1/assign_lecturer",
+              "raw": "{{hostname}}/courses/257/assign_lecturer",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
-                "1",
+                "257",
                 "assign_lecturer"
               ]
             }
@@ -404,7 +404,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\"\r\n}",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"justinbieber@gmail.com\",\r\n  \"password\": \"1234567890\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -412,13 +412,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/courses/1/register",
+              "raw": "{{hostname}}/courses/257/register",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
-                "1",
+                "257",
                 "register"
               ]
             }
@@ -436,13 +436,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/courses/1/members",
+              "raw": "{{hostname}}/courses/2/members",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
-                "1",
+                "2",
                 "members"
               ]
             }
@@ -460,13 +460,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/courses/1/calendar",
+              "raw": "{{hostname}}/courses/2/calendar",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
-                "1",
+                "2",
                 "calendar"
               ]
             }
@@ -479,14 +479,14 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/calendar/student/1?date=2026-06-01",
+              "raw": "{{hostname}}/calendar/student/125?date=2026-06-01",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "calendar",
                 "student",
-                "1"
+                "125"
               ],
               "query": [
                 {
@@ -510,7 +510,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"title\": \"Assignment 1 Due\",\r\n  \"event_type\": \"assignment_due\",\r\n  \"event_at\": \"2026-06-01 23:59:00\"\r\n}",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer00001@example.com\",\r\n  \"password\": \"a4c3fcb625ccf255765afd5e3548839e8a2de6c587d7125dfba735dda69dbe22\",\r\n  \"title\": \"Assignment 1 Due\",\r\n  \"event_type\": \"assignment_due\",\r\n  \"event_at\": \"2026-06-01 23:59:00\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -730,13 +730,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/courses/1/sections",
+              "raw": "{{hostname}}/courses/257/sections",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "courses",
-                "1",
+                "257",
                 "sections"
               ]
             }
@@ -814,13 +814,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/sections/1/items",
+              "raw": "{{hostname}}/sections/257/items",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "sections",
-                "1",
+                "257",
                 "items"
               ]
             }
@@ -854,11 +854,26 @@
         {
           "name": "student submit assignment",
           "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{dbpassword}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{dbuser}}",
+                  "type": "string"
+                }
+              ]
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"student1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"content_url\": \"submissions/student1_assignment1.pdf\"\r\n}",
+              "raw": "{\r\n  \"role\": \"student\",\r\n  \"email\": \"justinbieber@gmail.com\",\r\n  \"password\": \"1234567890\",\r\n  \"content_url\": \"submissions/student1_assignment1.pdf\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -866,13 +881,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/assignments/2053/submit",
+              "raw": "{{hostname}}/assignments/2054/submit",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "assignments",
-                "2053",
+                "2054",
                 "submit"
               ]
             }
@@ -886,7 +901,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"student_id\": 1,\r\n  \"grade\": 85\r\n}",
+              "raw": "{\r\n  \"role\": \"lecturer\",\r\n  \"email\": \"lecturer1@example.com\",\r\n  \"password\": \"password123\",\r\n  \"student_id\": 131089,\r\n  \"grade\": 85\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -894,13 +909,13 @@
               }
             },
             "url": {
-              "raw": "{{hostname}}/assignments/1026/grade",
+              "raw": "{{hostname}}/assignments/2054/grade",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "assignments",
-                "1026",
+                "2054",
                 "grade"
               ]
             }
@@ -913,13 +928,13 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{hostname}}/students/1/average",
+              "raw": "{{hostname}}/students/131089/average",
               "host": [
                 "{{hostname}}"
               ],
               "path": [
                 "students",
-                "1",
+                "131089",
                 "average"
               ]
             }

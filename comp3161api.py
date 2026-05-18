@@ -18,8 +18,8 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_NAME     = os.getenv("DB_NAME")
 DB_HOST     = os.getenv("DB_HOST", "127.0.0.1")
 
-BASIC_AUTH_USER = os.getenv("BASIC_AUTH_USER") or os.getenv("AD_USERNAME")
-BASIC_AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASSWORD") or os.getenv("ADMIN_PASSWORD")
+BASIC_AUTH_USER = os.getenv("BASIC_AUTH_USER") or os.getenv("DB_USER")
+BASIC_AUTH_PASSWORD = os.getenv("BASIC_AUTH_PASSWORD") or os.getenv("DB_PASSWORD")
 
 @auth.verify_password
 def verify_password(username, password):
